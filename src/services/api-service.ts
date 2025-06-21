@@ -578,71 +578,41 @@ export interface AnalyticsData {
 export const analyticsService = {
   getAnalyticsData: async (): Promise<AnalyticsData> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/analytics`);
-      if (!response.ok) {
-        throw new Error(`Server returned ${response.status} ${response.statusText}`);
-      }
-      return await response.json();
+      // Fetch live user and product data
+      const [users, products] = await Promise.all([
+        userService.getUsers(),
+        productService.getProducts()
+      ]);
+
+      // Using mock/static data for revenue and sales as intended.
+      console.warn("Using live user/product counts and mock revenue/sales analytics.");
+      
+      return {
+        revenue: { total: 28950, lastMonth: 4320, trend: 12.5 },
+        sales: { total: 1245, lastMonth: 245, trend: 8.7 },
+        users: { total: users.length, lastMonth: 15, trend: 5.3 },
+        products: { total: products.length, outOfStock: products.filter(p => p.quantity === 0).length },
+        revenueByMonth: [
+          { month: "Jan", revenue: 2100 }, { month: "Feb", revenue: 2400 },
+          { month: "Mar", revenue: 1800 }, { month: "Apr", revenue: 2800 },
+          { month: "May", revenue: 3200 }, { month: "Jun", revenue: 2900 },
+          { month: "Jul", revenue: 3800 }, { month: "Aug", revenue: 4100 },
+          { month: "Sep", revenue: 3600 }, { month: "Oct", revenue: 4320 },
+          { month: "Nov", revenue: 0 }, { month: "Dec", revenue: 0 },
+        ],
+        salesByProduct: products.map(p => ({ name: p.name, sales: Math.floor(Math.random() * 100) + 50 })),
+        userGrowth: [
+          { month: "Jan", users: 10 }, { month: "Feb", users: 15 },
+          { month: "Mar", users: 20 }, { month: "Apr", users: 28 },
+          { month: "May", users: 35 }, { month: "Jun", users: 42 },
+          { month: "Jul", users: 50 }, { month: "Aug", users: 65 },
+          { month: "Sep", users: 80 }, { month: "Oct", users: 95 },
+          { month: "Nov", users: 0 }, { month: "Dec", users: 0 }
+        ]
+      };
     } catch (error) {
-      // Fallback in development
-      if (import.meta.env.DEV) {
-        console.warn("Using mock analytics data in development mode");
-        // Generate mock analytics data based on current mock products and users
-        return {
-          revenue: {
-            total: 28950,
-            lastMonth: 4320,
-            trend: 12.5
-          },
-          sales: {
-            total: 1245,
-            lastMonth: 245,
-            trend: 8.7
-          },
-          users: {
-            total: mockUsers.length,
-            lastMonth: 15,
-            trend: 5.3
-          },
-          products: {
-            total: mockProducts.length,
-            outOfStock: mockProducts.filter(p => p.quantity === 0).length
-          },
-          revenueByMonth: [
-            { month: "Jan", revenue: 2100 },
-            { month: "Feb", revenue: 2400 },
-            { month: "Mar", revenue: 1800 },
-            { month: "Apr", revenue: 2800 },
-            { month: "May", revenue: 3200 },
-            { month: "Jun", revenue: 2900 },
-            { month: "Jul", revenue: 3800 },
-            { month: "Aug", revenue: 4100 },
-            { month: "Sep", revenue: 3600 },
-            { month: "Oct", revenue: 4320 },
-            { month: "Nov", revenue: 0 },
-            { month: "Dec", revenue: 0 },
-          ],
-          salesByProduct: mockProducts.map(p => ({
-            name: p.name,
-            sales: Math.floor(Math.random() * 100) + 50
-          })),
-          userGrowth: [
-            { month: "Jan", users: 10 },
-            { month: "Feb", users: 15 },
-            { month: "Mar", users: 20 },
-            { month: "Apr", users: 28 },
-            { month: "May", users: 35 },
-            { month: "Jun", users: 42 },
-            { month: "Jul", users: 50 },
-            { month: "Aug", users: 65 },
-            { month: "Sep", users: 80 },
-            { month: "Oct", users: 95 },
-            { month: "Nov", users: 0 },
-            { month: "Dec", users: 0 }
-          ]
-        };
-      }
-      return handleApiError(error, "Failed to fetch analytics data");
+      // This will now properly catch errors from getUsers or getProducts
+      return handleApiError(error, "Failed to fetch data for analytics");
     }
   }
 };
